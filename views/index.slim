@@ -6,90 +6,111 @@ html
 
   body
     h1 Qiita contribution
-
-    h2 Qiita認証
-    a href="http://qiita.com/api/v2/oauth/authorize?client_id=#{@qiita_config[:qiita_client_id]}&scope=#{@qiita_config[:qiita_scope]}&state=#{@qiita_config[:qiita_state]}"
-      |Qiitaへ認証する
-
     css:
       body {
         font: 10px sans-serif;
-        shape-rendering: crispEdges;
+      }
+      .days {
+        fill: rgb(238, 238, 238);
+      }
+      .days:hover {
+        stroke: rgb(0, 0, 0);
       }
 
-      .day {
-        fill: #eee;
-        stroke: #ccc;
-      }
-
-      .month {
-        fill: none;
-        stroke: #000;
-        stroke-width: 2px;
-      }
-
-      .RdYlGn .q1-11 {
+      .level-1 {
         fill: #d6e685
       }
 
-      .RdYlGn .q2-11 {
+      .level-2 {
         fill: #8cc665
       }
 
-      .RdYlGn .q3-11 {
+      .level-3 {
         fill: #44a340
       }
 
-      .RdYlGn .q4-11 {
+      .level-4 {
         fill: #1e6823
+      }
+
+      .day_label {
+        font-family: sans-serif;
+        font-size: 8px;
+        fill: #cccccc;
+        text-anchor: middle;
+        width: 11px;
+        height: 11px;
+      }
+      #tooltip {
+        background-color: #000;
+        opacity: 0.7;
+        position: absolute;
+        color: #fff;
+        padding: 10px;
+        border-radius: 3px;
+        text-align: center;
+        font-size: 11px;
+      }
+      #tooltip:after {
+        box-sizing: border-box;
+        position: absolute;
+        left: 50%;
+        height: 5px;
+        width: 5px;
+        bottom: -10px;
+        margin: 0 0 0 -5px;
+        content: " ";
+        border: 5px solid transparent;
+        border-top-color: #000;
+
       }
 
 
     javascript:
+
       var width = 960,
               height = 136,
-              cellSize = 17; // cell size
-
-      var percent = d3.format(".1%"),
+              cellSize = 11,
               format = d3.time.format("%Y-%m-%d");
 
-      var color = d3.scale.quantize()
-              .domain([1, 5])
-              .range(d3.range(4).map(function (d) {
-                return "q" + d + "-11";
-              }));
+      var barPadding = 1;
+      var datasetDays = d3.time.days(new Date(2014, 7, 22), new Date(2015, 7, 22));
+      var dataSetMonths = d3.time.months(new Date(2014, 7, 1), new Date(2015, 8, 1));
+      var startDay = new Date(2014, 7, 22);
 
-      var svg = d3.select("body").selectAll("svg")
-              .data(d3.range(2014, 2016))
-              .enter().append("svg")
+      var svg = d3.select("body")
+              .append("svg")
               .attr("width", width)
-              .attr("height", height)
-              .attr("class", "RdYlGn")
-              .append("g")
-              .attr("transform", "translate(" + ((width - cellSize * 53) / 2) + "," + (height - cellSize * 7 - 1) + ")");
+              .attr("height", height);
 
-      svg.append("text")
-              .attr("transform", "translate(-6," + cellSize * 3.5 + ")rotate(-90)")
-              .style("text-anchor", "middle")
-              .text(function (d) {
-                console.log(d);
-                return d;
-              });
-
-      var rect = svg.selectAll(".day")
-              .data(function (d) {
-                return d3.time.days(new Date(d, 0, 1), new Date(d + 1, 0, 1));
-                //return d3.time.days(new Date(2014, 7, 1), new Date(2015, 7, 1));
+      var rect = svg.selectAll("rect")
+              .data(datasetDays)
+              .enter()
+              .append("rect")
+              .attr("x", function (d, i) {
+                var tmpI = i + startDay.getDay();
+                var col = Math.floor(tmpI / 7);
+                return col * cellSize + col * 2 + 15;
               })
-              .enter().append("rect")
-              .attr("class", "day")
+              .attr("y", function (d, i) {
+                var row = d.getDay();
+                return row * cellSize + row * 2 + 15;
+              })
               .attr("width", cellSize)
               .attr("height", cellSize)
-              .attr("x", function (d) {
-                return d3.time.weekOfYear(d) * cellSize;
+              .attr("class", 'days')
+              .on("mouseover", function(d) {
+                var format = d3.time.format("%b %d, %Y");
+                var x = parseInt(this.getAttribute('x'), 10) - 78;
+                var y = parseInt(this.getAttribute('y'), 10) + 10;
+                var tooltip = d3.select("body")
+                        .append("div")
+                        .attr("id", "tooltip")
+                        .html("<strong>8 contributions</strong> " + format(new Date(d)))
+                        .attr("style", "top:" + y + "px;left:" + x + "px;");
               })
-              .attr("y", function (d) {
-                return d.getDay() * cellSize;
+              .on("mouseout", function () {
+                d3.select("#tooltip").remove();
               })
               .datum(format);
 
@@ -97,16 +118,6 @@ html
               .text(function (d) {
                 return d;
               });
-
-      svg.selectAll(".month")
-              .data(function (d) {
-                console.log(d);
-                return d3.time.months(new Date(d, 0, 1), new Date(d + 1, 0, 1));
-                //return d3.time.months(new Date(2014, 7, 1), new Date(2015, 7, 1));
-              })
-              .enter().append("path")
-              .attr("class", "month")
-              .attr("d", monthPath);
 
       d3.csv("test.csv", function (error, csv) {
         if (error) throw error;
@@ -118,14 +129,10 @@ html
                 .map(csv);
 
         rect.filter(function (d) {
-          //console.log(d);
-          //console.log(data);
           return d in data;
         })
                 .attr("class", function (d) {
-                  console.log(d);
-                  //return "day " + color(data[d]);
-                  var point = data[d][0].Post * 1 + data[d][0].Stock;
+                  var point = data[d][0].Post * 1;
                   colorId = 0;
                   if (point > 5) {
                     colorId = 4;
@@ -136,25 +143,39 @@ html
                   } else if (point > 0) {
                     colorId = 1;
                   }
-                  //console.log(data[d][0]);
-                  return "day " + color(colorId);
-                })
-                .select("title")
-                .text(function (d) {
-                  return d + ": " + percent(data[d]);
+                  console.log(point);
+                  return "days level-" + colorId;
                 });
       });
 
-      function monthPath(t0) {
-        console.log(t0);
-        var t1 = new Date(t0.getFullYear(), t0.getMonth() + 1, 0),
-                d0 = t0.getDay(), w0 = d3.time.weekOfYear(t0),
-                d1 = t1.getDay(), w1 = d3.time.weekOfYear(t1);
-        return "M" + (w0 + 1) * cellSize + "," + d0 * cellSize
-                + "H" + w0 * cellSize + "V" + 7 * cellSize
-                + "H" + w1 * cellSize + "V" + (d1 + 1) * cellSize
-                + "H" + (w1 + 1) * cellSize + "V" + 0
-                + "H" + (w0 + 1) * cellSize + "Z";
-      }
+      svg.selectAll("text")
+              .data(dataSetMonths)
+              .enter()
+              .append("text")
+              .attr("x", function(d, i) {
+                return (i + 1) * 52
+              })
+              .attr("y", 10)
+              .attr("class", "day_label")
+              .text(function(d) {
+                console.log(d);
+                var format = d3.time.format("%b");
+                return format(d);
+              })
+              .datum(d3.time.format("%b"));
 
-      d3.select(self.frameElement).style("height", "2910px");
+      svg.append("text")
+              .attr("x", 5)
+              .attr("y", 36)
+              .attr("class", 'day_label')
+              .text("M");
+      svg.append("text")
+              .attr("x", 5)
+              .attr("y", 63)
+              .attr("class", 'day_label')
+              .text("W");
+      svg.append("text")
+              .attr("x", 5)
+              .attr("y", 89)
+              .attr("class", 'day_label')
+              .text("F");

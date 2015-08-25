@@ -26,9 +26,4 @@ class WebApp < Sinatra::Base
     slim :index
   end
 
-  get '/auth_complete' do
-    @code = request['code']
-    slim :auth_complete
-  end
-
 end
