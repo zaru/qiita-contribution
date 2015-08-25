@@ -10,12 +10,19 @@ class WebApp < Sinatra::Base
 
   assets do
     serve '/js', from: 'bower_components/'
+    serve '/css', from: 'bower_components/'
 
     js :application, [
                      '/**/*.js'
                    ]
 
     js_compression :jsmin
+
+    css :application, [
+                      '/**/*.css',
+                      '/**/*.scss',
+                    ]
+    css_compression :scss
   end
 
   before do
