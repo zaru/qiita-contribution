@@ -4,7 +4,7 @@ GEM
     backports (3.6.6)
     jsmin (1.0.1)
     multi_json (1.11.2)
-    rack (1.6.4)
+    rack (1.5.2)
     rack-protection (1.5.3)
       rack
     rack-test (0.6.3)
@@ -37,10 +37,11 @@ PLATFORMS
 
 DEPENDENCIES
   sass
+  rack (= 1.5.2)
   sinatra
   sinatra-assetpack
   sinatra-contrib
   slim
 
 BUNDLED WITH
-   1.10.5
+   1.10.6
