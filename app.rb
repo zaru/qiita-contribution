@@ -1,6 +1,10 @@
 class WebApp < Sinatra::Base
 
   register Sinatra::AssetPack
+  configure :development do
+    register Sinatra::Reloader
+  end
+  logger = Logger.new('sinatra.log')
 
   qiita_config = {
     :qiita_state => 'haue73aueaoakdjfh13yehd934g46dh',
@@ -32,6 +36,10 @@ class WebApp < Sinatra::Base
 
   get '/' do
     slim :index
+  end
+
+  get '/crawl' do
+    logger.info params
   end
 
 end
