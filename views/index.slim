@@ -196,6 +196,8 @@ html
             drawGraph(dailyData);
           },
           error: function (error) {
+            alert("該当するQiitaIDはありませんでした");
+            resetSvg();
             console.log(error);
           }
         });
