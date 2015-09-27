@@ -19,10 +19,9 @@ html
 
           .columns
             .one-half.column.centered
-              form action="" method=""
-                input.input-large#qiita_id type="text" placeholder="Qiita ID"
-                |&nbsp;
-                button.btn.btn-primary#submit type="button" 取得
+              input.input-large#qiita_id type="text" placeholder="Qiita ID"
+              |&nbsp;
+              button.btn.btn-primary#submit type="button" 取得
 
           h2
             span.qiita_id
@@ -34,16 +33,6 @@ html
 
     javascript:
 
-      $('#submit').click(function() {
-        var qiitaId = $('#qiita_id').val();
-
-        $('.qiita_id').text(qiitaId);
-        loadQiitaApi(qiitaId);
-        console.log($('#qiita_id').val());
-      });
-      $(function() {
-        loadQiitaApi('zaru');
-      });
 
       var width = 960,
               height = 136,
@@ -61,6 +50,56 @@ html
               .append("svg")
               .attr("width", width)
               .attr("height", height);
+
+
+      $('#qiita_id').keypress(function (e) {
+        if (e.which == 13) {
+          exec();
+          return false;
+        }
+      });
+      $('#submit').click(function() {
+        exec();
+      });
+      $(function() {
+        var initId = 'zaru';
+        if (location.hash != '') {
+          initId = location.hash.replace('#', '');
+        }
+        changeDisplay(initId);
+        animation();
+        loadQiitaApi(initId);
+      });
+
+      function animation() {
+        var rect = svg.selectAll("rect")
+                .transition()
+                .delay(function (d, i) {
+                  return i * 5;
+                })
+                .duration(function (d, i) {
+                  return 600;
+                })
+                .attr("width", function (d) {
+                  return 5;
+                })
+                .attr("height", function (d) {
+                  return 5;
+                });
+
+        rect.transition().delay(function (d, i) {
+          return i * 10 + 300;
+        })
+                .duration(function (d, i) {
+                  return 1100;
+                })
+                .attr("width", function (d) {
+                  return cellSize;
+                })
+                .attr("height", function (d) {
+                  return cellSize;
+                });
+      }
 
       var rect = svg.selectAll("rect")
               .data(datasetDays)
@@ -97,40 +136,6 @@ html
               .text(function (d) {
                 return d;
               });
-
-      /*
-      d3.csv("test.csv", function (error, csv) {
-        console.log(csv);
-        if (error) throw error;
-
-        var data = d3.nest()
-                .key(function (d) {
-                  return d.Date;
-                })
-                .map(csv);
-
-        rect.filter(function (d) {
-          return d in data;
-        })
-                .attr("class", function (d) {
-                  var point = data[d][0].Post * 1;
-                  colorId = 0;
-                  if (point > 3) {
-                    colorId = 4;
-                  } else if (point > 2) {
-                    colorId = 3;
-                  } else if (point > 1) {
-                    colorId = 2;
-                  } else if (point > 0) {
-                    colorId = 1;
-                  }
-                  return "days level-" + colorId;
-                })
-                .attr('data-post', function(d) {
-                  return data[d][0].Post;
-                });
-      });
-      */
 
 
       function drawGraph(csv) {
@@ -197,7 +202,20 @@ html
       }
 
       function resetSvg() {
+        svg.selectAll("rect").transition().attr("width", cellSize).attr("height", cellSize);
         svg.selectAll("rect").classed("level-0 level-1 level-2 level-3 level-4", false).attr('data-post', 0);
+      }
+
+      function changeDisplay(qiitaId) {
+        $('.qiita_id').html('<a href="http://qiita.com/' + qiitaId + '">' + qiitaId + '</a>');
+      }
+
+      function exec() {
+        var qiitaId = $('#qiita_id').val();
+        history.pushState(null, null, "#" + qiitaId);
+        animation();
+        changeDisplay(qiitaId);
+        loadQiitaApi(qiitaId);
       }
 
       svg.selectAll("text")
